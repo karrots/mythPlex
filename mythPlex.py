@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.4
+#!/usr/bin/env python3
 
 import os
 import sys
@@ -74,6 +74,11 @@ def main():
             logger.info("Skipping finished episode %s", episode_name)
             continue
 
+        # Expand plex directories for future comparison operations.
+        config.plex_tv_directory = os.path.expanduser(config.plex_tv_directory)
+        config.plex_movie_directory = os.path.expanduser(config.plex_movie_directory)
+        config.plex_specials_directory = os.path.expanduser(config.plex_specials_directory)
+
         # Handle specials, movies, etc.
         if ep_season == '00' and ep_num == '00':
             if (ep_start_time is not None):
@@ -121,26 +126,27 @@ def main():
                     logger.error("It will be checked again next run.")
                     continue
 
-        if (config.plex_tv_directory in link_path):
-            if (not os.path.exists(config.plex_tv_directory + title)):
-                logger.info("Show folder does not exist, creating.")
-                os.makedirs(config.plex_tv_directory + title)
-                os.system('chown plex:plex \"' + 
-                          config.plex_tv_directory + title + '\"')
-
         if (config.plex_movie_directory in link_path):
             if (not os.path.exists(config.plex_movie_directory + title)):
                 logger.info("Show folder does not exist, creating.")
                 os.makedirs(config.plex_movie_directory + title)
-                os.system('chown plex:plex \"' + 
+                os.system('chown plex:plex \"' +
                           config.plex_movie_directory + title + '\"')
 
         if (config.plex_specials_directory in link_path):
             if (not os.path.exists(config.plex_specials_directory + title)):
                 logger.info("Show folder does not exist, creating.")
                 os.makedirs(config.plex_specials_directory + title)
-                os.system('chown plex:plex \"' + 
+                os.system('chown plex:plex \"' +
                           config.plex_specials_directory + title + '\"')
+        else:
+            # Don't create duplicate directories in TV path if they exist in Specials
+            if (config.plex_tv_directory in link_path):
+                if (not os.path.exists(config.plex_tv_directory + title)):
+                    logger.info("Show folder does not exist, creating.")
+                    os.makedirs(config.plex_tv_directory + title)
+                    os.system('chown plex:plex \"' +
+                              config.plex_tv_directory + title + '\"')
 
         logger.info("Processing %s (path %s)", episode_name, source_path)
 
